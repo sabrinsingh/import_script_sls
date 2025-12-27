@@ -188,13 +188,25 @@ class RedshiftApp(ttk.Window):
             self.run_btn.config(state="normal")
             return
 
-        # ✅ Update os.environ with current values so main_script sees them
+        # ✅ Update os.environ with current values
         os.environ["AWS_PROFILE"] = aws_profile
         os.environ["S3_LOCATION"] = s3_path
         os.environ["REDSHIFT_HOST"] = host
         os.environ["REDSHIFT_PORT"] = port
         os.environ["REDSHIFT_USER"] = user
         os.environ["REDSHIFT_PASSWORD"] = password
+
+        # ✅ Persist to .env file
+        try:
+            with open(ENV_PATH, "w") as f:
+                f.write(f"AWS_PROFILE={aws_profile}\n")
+                f.write(f"S3_LOCATION={s3_path}\n")
+                f.write(f"REDSHIFT_HOST={host}\n")
+                f.write(f"REDSHIFT_PORT={port}\n")
+                f.write(f"REDSHIFT_USER={user}\n")
+                f.write(f"REDSHIFT_PASSWORD={password}\n")
+        except Exception as e:
+            print(f"⚠️ Could not save .env: {e}")
 
         self.log("🚀 Starting main_script logic directly...\n")
 
