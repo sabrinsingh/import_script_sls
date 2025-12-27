@@ -1,0 +1,53 @@
+name: Build Mac Apps
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        # macos-13 is Intel (x86_64)
+        # macos-14 is Apple Silicon (arm64)
+        os: [macos-13, macos-14]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12' 
+
+    - name: Install Dependencies
+      run: |
+        pip install -r requirements.txt
+        pip install pyinstaller
+
+    - name: Build with PyInstaller
+      run: |
+        # Clean build folders if they exist
+        rm -rf build dist
+
+        # Run PyInstaller
+        # We use fewer excludes here as the GitHub environment is cleaner than Anaconda
+        pyinstaller gui_runner.py \
+          --name=Stage1,3_Import_GUI \
+          --onefile \
+          --windowed \
+          --collect-all=ttkbootstrap \
+          --hidden-import=psycopg2 \
+          --hidden-import=PIL \
+          --hidden-import=boto3 \
+          --clean \
+          --noconfirm
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Stage1,3_Import_GUI_${{ matrix.os }}
+        path: dist/Stage1,3_Import_GUI.app
